@@ -1,0 +1,1007 @@
+---
+title: "VALORACIÓN ZILLOW ECONOMICS"
+author: "José Andrés"
+output:
+  html_document: 
+    code_folding: hide
+---
+
+
+## Objetivo de la práctica
+
+El objetivo de esta práctica es hacer un análisis de datos del dataset de Zillow, limpiar y enriquecer esos datos, preparar un entorno para evaluar modelos, analizar varios modelos y ver cuál es el mejor de ellos. 
+
+
+## ¿ Qué es Zillow ?
+
+Últimamente se ha oído hablar en algunos blogs norteamericanos sobre Zillow, de los creadores de Expedia, que lleva en funcionamiento desde febrero de 2006. Se trata de un servicio de red social orientado tanto a agentes inmobiliarios como a propietarios y vendedores. Este servicio pretende establecer estimaciones de precio de las propiedades basándose en el precio de propiedades similares y según su propio algoritmo.
+
+
+## Instalación de las librerías correspondientes
+
+```{r message=FALSE, warning=FALSE}
+# Preguntamos para cada una ellas si está instalada, si no es así la instalamos
+if(!is.element("tidyverse", installed.packages()[, 1]))
+      install.packages("tidyverse", repos = 'http://cran.us.r-project.org')
+library(tidyverse)
+if(!is.element("ggplot2", installed.packages()[, 1]))
+      install.packages("ggplot2", repos = 'http://cran.us.r-project.org')
+library(ggplot2)
+if(!is.element("stringr", installed.packages()[, 1]))
+      install.packages("stringr", repos = 'http://cran.us.r-project.org')
+library(stringr)
+if(!is.element("plyr", installed.packages()[, 1]))
+      install.packages("plyr", repos = 'http://cran.us.r-project.org')
+library(plyr)
+if(!is.element("glmnet", installed.packages()[, 1]))
+      install.packages("glmnet", repos = 'http://cran.us.r-project.org')
+library(glmnet)
+if(!is.element("xgboost", installed.packages()[, 1]))
+      install.packages("xgboost", repos = 'http://cran.us.r-project.org')
+library(xgboost)
+if(!is.element("e1071", installed.packages()[, 1]))
+      install.packages("e1071", repos = 'http://cran.us.r-project.org')
+library(e1071)
+if(!is.element("dplyr", installed.packages()[, 1]))
+      install.packages("dplyr", repos = 'http://cran.us.r-project.org')
+library(dplyr)
+if(!is.element("caret", installed.packages()[, 1]))
+      install.packages("caret", repos = 'http://cran.us.r-project.org')
+library(caret)
+if(!is.element("moments", installed.packages()[, 1]))
+      install.packages("moments", repos = 'http://cran.us.r-project.org')
+library(moments)
+if(!is.element("MASS", installed.packages()[, 1]))
+      install.packages("MASS", repos = 'http://cran.us.r-project.org')
+library(MASS)
+if(!is.element("corrplot", installed.packages()[, 1]))
+      install.packages("corrplot", repos = 'http://cran.us.r-project.org')
+library(corrplot)
+if(!is.element("ggthemes", installed.packages()[, 1]))
+      install.packages("ggthemes", repos = 'http://cran.us.r-project.org')
+library(ggthemes)
+if(!is.element("plotly", installed.packages()[, 1]))
+      install.packages("plotly", repos = 'http://cran.us.r-project.org')
+library(plotly)
+if(!is.element("Amelia", installed.packages()[, 1]))
+      install.packages("Amelia", repos = 'http://cran.us.r-project.org')
+library(Amelia)
+if(!is.element("gbm", installed.packages()[, 1]))
+      install.packages("gbm", repos = 'http://cran.us.r-project.org')
+library(gbm)
+if(!is.element("gridExtra", installed.packages()[, 1]))
+      install.packages("gridExtra", repos = 'http://cran.us.r-project.org')
+library(gridExtra)
+if(!is.element("Boruta", installed.packages()[, 1]))
+      install.packages("Boruta", repos = 'http://cran.us.r-project.org')
+library(Boruta)
+if(!is.element("pROC", installed.packages()[, 1]))
+      install.packages("pROC", repos = 'http://cran.us.r-project.org')
+library(pROC)
+if(!is.element("Ckmeans.1d.dp", installed.packages()[, 1]))
+      install.packages("Ckmeans.1d.dp", repos = 'http://cran.us.r-project.org')
+library(Ckmeans.1d.dp)
+if(!is.element("Hmisc", installed.packages()[, 1]))
+      install.packages("Hmisc", repos = 'http://cran.us.r-project.org')
+library(Hmisc)
+if(!is.element("data.table", installed.packages()[, 1]))
+      install.packages("data.table", repos = 'http://cran.us.r-project.org')
+library(data.table)
+if(!is.element("DT", installed.packages()[, 1]))
+      install.packages("DT", repos = 'http://cran.us.r-project.org')
+library(DT)
+if(!is.element("reshape", installed.packages()[, 1]))
+      install.packages("reshape", repos = 'http://cran.us.r-project.org')
+library(reshape)
+if(!is.element("doBy", installed.packages()[, 1]))
+      install.packages("doBy", repos = 'http://cran.us.r-project.org')
+library(doBy)
+if(!is.element("wesanderson", installed.packages()[, 1]))
+      install.packages("wesanderson", repos = 'http://cran.us.r-project.org')
+library(wesanderson)
+if(!is.element("RColorBrewer", installed.packages()[, 1]))
+      install.packages("RColorBrewer", repos = 'http://cran.us.r-project.org')
+library(RColorBrewer)
+if(!is.element("forecast", installed.packages()[, 1]))
+      install.packages("forecast", repos = 'http://cran.us.r-project.org')
+library(forecast)
+if(!is.element("prophet", installed.packages()[, 1]))
+      install.packages("prophet", repos = 'http://cran.us.r-project.org')
+library(prophet)
+if(!is.element("tidyverse", installed.packages()[, 1]))
+      install.packages("tidyverse", repos = 'http://cran.us.r-project.org')
+library(tidyverse)
+if(!is.element("magrittr", installed.packages()[, 1]))
+      install.packages("magrittr", repos = 'http://cran.us.r-project.org')
+library(magrittr)
+if(!is.element("lubridate", installed.packages()[, 1]))
+      install.packages("lubridate", repos = 'http://cran.us.r-project.org')
+library(lubridate)
+if(!is.element("fiftystater", installed.packages()[, 1]))
+      install.packages("fiftystater", repos = 'http://cran.us.r-project.org')
+library(fiftystater)
+if(!is.element("geofacet", installed.packages()[, 1]))
+      install.packages("geofacet", repos = 'http://cran.us.r-project.org')
+library(geofacet)
+if(!is.element("mapproj", installed.packages()[, 1]))
+      install.packages("mapproj", repos = 'http://cran.us.r-project.org')
+library(mapproj)
+if(!is.element("kableExtra", installed.packages()[, 1]))
+      install.packages("kableExtra", repos = 'http://cran.us.r-project.org')
+library(kableExtra)
+# Fija parametros para el resto de los chunks
+knitr::opts_chunk$set(warning = FALSE, message = "",
+                      fig.height=6, fig.width=9)
+if(!is.element("gapminder", installed.packages()[, 1]))
+      install.packages("gapminder", repos = 'http://cran.us.r-project.org')
+library(gapminder)
+if(!is.element("gifski", installed.packages()[, 1]))
+      install.packages("gifski", repos = 'http://cran.us.r-project.org')
+library(gifski)
+if(!is.element("gganimate", installed.packages()[, 1]))
+      install.packages("gganimate", repos = 'http://cran.us.r-project.org')
+library(gganimate)
+# funciones para el modelo
+if(!is.element("tidyquant", installed.packages()[, 1]))
+      install.packages("tidyquant", repos = 'http://cran.us.r-project.org')
+library(tidyquant)
+if(!is.element("h2o", installed.packages()[, 1]))
+      install.packages("h2o", repos = 'http://cran.us.r-project.org')
+library(h2o)
+if(!is.element("timetk", installed.packages()[, 1]))
+      install.packages("timetk", repos = 'http://cran.us.r-project.org')
+library(timetk)
+```
+
+Hacemos una copia del significado de las variables de la misma [página](https://www.kaggle.com/zillow/zecon) del concurso y de la [página](https://www.zillow.com/research/data/) de Zillow con la explicación de forma más explícita del cálculo de sus variables más importantes.
+
+
+#### Archivos que tiene Zillow
+
+    City_time_series.csv
+    CountyCrossWalk_Zillow.csv                
+    County_time_series.csv      
+    sample_submission.csv
+    DataDictionary.csv
+    Metro_time_series.csv
+    Neighborhood_time_series.csv
+    State_time_series.csv
+    Zip_time_series.csv
+    cities_crosswalk.csv
+
+
+### Descripción de los campos
+
+    ZHVI                            - Valor medio de la vivienda en una determinada región y tipo de vivienda. 
+    ZRI                             - Mediana del precio del alquiler en una región y un tipo de vivienda.
+    ZHVIPerSqft                     - Mediana del valor de todas las viviendas por pie cuadrado. 
+    ZriPerSqft                      - Mediana del precio de alquiler de las viviendas por pie cuadrado. 
+    AgeOfInventory                  - Mediana del número de días que los listados activos a partir de un día.
+    DaysOnZillow                    - Mediana de los días en el mercado de las viviendas vendidas en un mes.
+    HomesSoldAsForeclosuresRatio    - Número de viviendas por cada 10.000 que fueron ejecutadas en un mes. 
+    InventorySeasonallyAdjusted     - Mediana semanal de viviendas en venta dentro de una región.
+    MedianListingPrice              - Mediana del precio venta de las viviendas listadas en Zillow.
+    MedianPctOfPriceReduction       - Mediana del porcentaje de reducción de precio de las viviendas.
+    MedianRentalPerSqft             - Mediana del precio de alquiler por pie cuadrado en una región determinada.
+    MedianRentalPrice               - Mediana del precio de alquiler en una región determinada.
+    MedianSoldPricePerSqft          - Mediana del precio de venta dividido por los metros cuadrados de vivienda.
+    MedianSoldPrice                 - Mediana del precio de venta de todas las viviendas vendidas en una región.
+    PctOfHomesDecreasingInValues    - Porcentaje de viviendas con valores que han disminuido en el último año.
+    PctOfHomesIncreasingInValues    - Porcentaje de viviendas con valores que han aumentado en el último año.
+    PctOfHomesSellingForGain        - Porcentaje de viviendas que se vendieron por un precio superior al anterior.
+    PctOfHomesSellingForLoss        - Porcentaje de viviendas que se vendieron por un precio inferior al anterior.
+    PriceToRentRatio                - Valor del precio del alquiler mensual estimado de la vivienda.
+    SalesSeasonallyAdjusted         - Número de viviendas vendidas en transacciones de consumidor a consumidor.
+    TierShare                       - Inventario disponible clasificada como nivel inferior, medio o superior.
+    Turnover                        - Porcentaje de viviendas que se han vendido en los últimos 12 meses.
+
+
+## Carga de datos
+
+Primero se descargan los datos de la [página de datos](https://www.kaggle.com/zillow/zecon) del concurso y se guardan en el subdirectorio correspondiente donde se encuentre el archivo Rmd. Tras analizar los diferentes archivos, se determina que se llevará a cabo un estudio de Zillow a partir del archivo de State_time_series.csv.
+
+```{r}
+state_time <- read.csv('State_time_series.csv', header = T) 
+state_time %>% head(200) %>% kbl() %>% kable_styling() %>% 
+    scroll_box(width = "100%", height = "400px")
+```
+
+Se muestra las observaciones y variables del dataset.
+
+```{r}
+cat("Nuestro dataset está compuesto por", dim(state_time)[1], 'observaciones y ',dim(state_time)[2], 'variables.')
+```
+
+Se muestran otras características del dataset.
+
+```{r}
+# str(state_time)
+summary(state_time) %>% t() %>% kbl() %>% kable_styling() %>% scroll_box(width = "100%", height = "400px")
+# names(state_time) %>% kbl() %>% kable_styling() %>% scroll_box(width = "100%", height = "200px")
+```
+
+## Tratamiento de NAs
+
+Se muestra el porcentaje de NAs en relación al total.
+
+```{r}
+rbind(table(is.na(state_time)) , round(prop.table(table(is.na(state_time)))*100,1)) %>% 
+  kbl() %>% kable_styling(full_width = FALSE)
+```
+Se visualiza como de nuestro dataset el `r round(prop.table(table(is.na(state_time)))[2]*100,1)`% son NAs.
+
+
+Se visualiza el porcentaje de NAs por columna.
+
+```{r}
+data.frame(NA_data = colMeans(is.na(state_time))) %>% 
+  mutate(group = c(1:ncol(state_time))%%2, variables = row.names(.)) %>% 
+  arrange(-NA_data) %>% 
+  ggplot(aes(x = NA_data, y = reorder(variables, -NA_data))) +
+  geom_col(fill = "darkred")+
+  xlab("Porcentaje de NA") + ylab("Columnas") +
+  facet_wrap(group~., scales = "free_y")
+```
+Se puede observar la gran cantidad de columnas que cuentan con un número alto de NAs.
+
+
+Se ven las columnas que tienen un porcentaje de NAs de menos o igual al 20%.
+
+```{r}
+state_timeBorrada <- which(colMeans(is.na(state_time)) <= 0.20)
+
+data.frame(n = state_timeBorrada) %>% kbl() %>% kable_styling(full_width = FALSE) %>% scroll_box(height = "400px")
+```
+Como se puede ver, son 14 de las 82 las columnas que tienen NAs por debajo o igual al 20%.
+
+
+### Dendograma de NAs
+
+Se realiza un análisis horizontal de NAs a partir de un dendograma.
+
+```{r}
+options(repr.plot.width = 7, repr.plot.height = 7)
+plot(naclus(state_time), cex = 0.4)
+title('Cluster analysis', cex.main = 1)
+```
+
+Se lleva a cabo un análisis horizontal entre los valores perdidos en referencia a sus filas donde explica cómo cuenta con una relación de forma muy igualitaria en correlación a los valores perdidos de cada fila y que resulta muy imporante para nuestro modelo.  
+
+
+### NAs en relación a los diferentes años
+
+```{r}
+# Crear una columna que sume el número de NAs de cada observación para todas las variables
+state_time_NA_per_var <- state_time %>%
+    mutate(Date_Y = substr(Date,1,4), # extract only year from Date
+           obs_na = rowSums(is.na(state_time))) %>%
+    filter(obs_na > 0)
+
+```
+
+
+```{r}
+options(repr.plot.width = 7, repr.plot.height = 3.5)
+
+ggplot(state_time_NA_per_var, aes(Date_Y, obs_na)) + 
+    geom_point(alpha = 0.3, col = 'steelblue4', fill = 'steelblue2') +
+    labs(x = 'Year of observation', y = 'Number of missing variable information per observation') +
+    theme(axis.text.x = element_text(size = 7), axis.text.y = element_text(size = 7),
+          axis.title.x = element_text(size = 7), axis.title.y = element_text(size = 7))
+```
+
+Como se puede visualizar, existe una gran cantidad de datos faltantes hasta el año 2009. A partir de 2010, se produce un descenso significativo de las observaciones que faltan.
+
+## Tratamiento del dataset
+
+Se cambia el formato de la columna Date a formato de fecha
+
+```{r}
+state_time$Date <- state_time$Date %>% as.Date
+```
+
+
+Se crea una columna con la observación Year.
+
+```{r}
+state_time$Year <- lubridate::year(state_time$Date)
+```
+
+
+Se recoge en el dataframe a partir del año 2008. El motivo por el que se ha elegido este periodo de tiempo es porque un año antes se produce el colapso de la burbuja inmobiliaria en los Estados Unidos, que provocó la llamada "crísis de las hipotecas subprime". A pesar de tener pocas observaciones en los años 2008 y 2009 se quiere ver como están representadas.
+
+```{r}
+state_since2008 <- state_time[state_time$Year >= 2008,]
+```
+
+
+## Visualización
+
+Se recogen los diferentes colores a utilizar.
+
+```{r}
+gbp1 <- "#D8b70A" # Amarillo
+gbp2 <- "#972039" # Rojo
+gbp3 <- "#289A99" # Verde-Azul
+```
+
+### Histogramas
+
+Se crean los histogramas del precio de venta, precio del alquiler y el ZHVI de todas las casas.
+
+```{r}
+
+state_since2008 %>% select(c("ZHVI_AllHomes", "Sale_Prices", "MedianRentalPrice_AllHomes")) %>% 
+  pivot_longer(cols = c("ZHVI_AllHomes", "Sale_Prices", "MedianRentalPrice_AllHomes"),
+               names_to = "variables") %>% 
+  mutate(variables = ifelse(variables=="ZHVI_AllHomes","ZHVI DE TODAS LAS CASAS", variables)) %>% 
+  mutate(variables = ifelse(variables=="Sale_Prices","PRECIO DE VENTA", variables)) %>% 
+  mutate(variables = ifelse(variables=="MedianRentalPrice_AllHomes","PRECIO DEL ALQUILER", variables)) %>% 
+  drop_na() %>% 
+  ggplot(aes(x = value, fill = variables))+
+  geom_histogram(bins = 30)+
+  scale_fill_manual(values = c(gbp1, gbp2, gbp3))+
+  ggtitle("HISTOGRAMA")+
+  facet_wrap(variables~., scales = "free")+
+  theme_minimal()+
+  theme(legend.position = "none")
+
+```
+
+### Gráfico de líneas
+
+Se visualiza a partir de un gráfico lineal el crecimiento de las 3 observaciones principales.
+
+```{r}
+
+#CRECIMIENTO DEL PRECIO DE VENTA
+MSP <- aggregate(Sale_Prices ~ Year, state_since2008, mean)
+
+sl1 <-ggplot(MSP, aes(x=as.factor(Year), y=Sale_Prices))+
+    geom_line(color=gbp1, aes(group=1), size=1.5)+
+    geom_point(colour=gbp1, size = 3.5, alpha=0.5)+
+    labs(title="Precio de venta por año", x=NULL, y="Precio de venta")+
+    theme( plot.title=element_text(vjust=3, size=2) ) + theme_minimal()
+
+
+
+#CRECIMIENTO DEL PRECIO DEL ALQUILER
+MRP=na.omit(ddply(state_since2008,'Year',summarise,
+                  Rental_price = mean(MedianRentalPrice_AllHomes , na.rm=T)))
+
+rl2 <-ggplot(MRP, aes(x=as.factor(Year), y=Rental_price))+
+    geom_line(color=gbp2, aes(group=1), size=1.5)+
+    geom_point(colour="#7D1A30", size = 3.5, alpha=0.5)+
+    labs(title="Precio de alquiler por año", x=NULL, y="Precio del alquiler")+
+    theme( plot.title=element_text(vjust=3, size=2) ) + theme_minimal()
+
+
+
+#CRECIMIENTO DE ZHVI Allhomes
+MSP <- aggregate(ZHVI_AllHomes ~ Year, state_since2008, mean)
+
+
+sl3 <-ggplot(MSP, aes(x=as.factor(Year), y=ZHVI_AllHomes))+
+    geom_line(color=gbp3, aes(group=1), size=1.5)+
+    geom_point(colour=gbp3, size = 3.5, alpha=0.5)+
+    labs(title="ZHVI de los inmuebles", x=NULL, y="ZHVI")+
+    theme( plot.title=element_text(vjust=3, size=2) ) + theme_minimal()
+
+
+grid.arrange(sl1,rl2,sl3)
+
+```
+
+Se puede observar como se comienza con un decrecimiento hasta los años 2011 y 2012. Este suceso se viene producido por la crisis inmobiliaria y las hipotecas subprime. Como se puede observar este suceso se finalizó a partir del año 2011/2012 produciéndose un punto de inflexión a partir del cual dichos valores crecen hasta llegar a superar a los valores reflejados en el año 2008.
+
+
+### Mapa de Estados Unidos
+
+Se realiza un mapa de acuerdo a cómo influyen las variables principales en cada estado de Estados Unidos.
+
+```{r}
+# MAP DE ZHVI_ALLHOMES
+USA<-map_data("state")
+USA$region<-gsub(" ","", USA$region)
+Allstates <-data.frame( region = tolower(aggregate(ZHVI_AllHomes ~ RegionName, state_since2008, mean)[,1]), 
+                        Price = aggregate(ZHVI_AllHomes ~RegionName,state_since2008,mean)[,2])%>%
+            mutate(Rank = dense_rank(desc(Price)))%>%
+            merge(USA, by = 'region')
+
+palettecolors <- c("#3CE6E3", "#289A99", "#21807E", "#175958")
+
+ap<-arrange(Allstates, order)%>%
+    ggplot(aes(long, lat, group=group, fill=Price))+
+    geom_polygon()+
+    geom_path(alpha=0.2)+
+    labs(x=NULL, y=NULL, title = "ZHVI de todas las casas en Estados Unidos")+
+    coord_map("polyconic")+
+    coord_fixed(1.3)+
+    scale_fill_gradientn(colors= palettecolors)+
+    theme(legend.text=element_text(size=8),
+          plot.title=element_text(size=15),
+          panel.background=element_blank())
+ggplotly(ap)
+
+#MAP SALES PRICE
+Allstates_r <-data.frame(region = tolower(aggregate(Sale_Prices ~ RegionName, state_since2008, mean)[,1]))%>%
+              merge(USA, by = 'region')
+meanr <-aggregate(Sale_Prices ~ RegionName, state_since2008, mean)
+Allstates_r <-merge(Allstates_r, data.frame(price =meanr[,2], region =tolower(meanr[,1])),
+                    all.x=TRUE)%>%
+              mutate(Rank = dense_rank(-price))
+
+gra <-c("#F5DE79", "#D8b70A", "#DBC76B", "#B5A459", "#756A39")
+
+ar<-arrange(Allstates_r, order)%>%
+    ggplot(aes(long, lat, group=group, fill=price))+
+    geom_polygon()+
+    geom_path(alpha=0.2)+
+    labs(x=NULL, y=NULL, title = "Precio de venta en Estados Unidos")+
+    coord_map("polyconic")+
+    coord_fixed(1.3)+
+    scale_fill_gradientn(colors= gra)+
+    theme(legend.text=element_text(size=8),
+          plot.title=element_text(size=15),
+          panel.background=element_blank())
+ggplotly(ar)
+
+
+# MAP DE RENTAL PRICE
+Allstates_r <-data.frame(region = tolower(aggregate(ZHVI_AllHomes ~ RegionName, state_since2008, mean)[,1]))%>%
+              merge(USA, by = 'region')
+meanr <-aggregate(MedianRentalPrice_AllHomes ~ RegionName, state_since2008, mean)
+Allstates_r <-merge(Allstates_r, data.frame(price =meanr[,2], region =tolower(meanr[,1])),
+                    all.x=TRUE)%>%
+              mutate(Rank = dense_rank(-price))
+
+gra <-c("#E33057", "#972039", "#7D1A30", "#571221")
+
+ar<-arrange(Allstates_r, order)%>%
+    ggplot(aes(long, lat, group=group, fill=price))+
+    geom_polygon()+
+    geom_path(alpha=0.2)+
+    labs(x=NULL, y=NULL, title = "Precio del alquiler en Estados Unidos")+
+    coord_map("polyconic")+
+    coord_fixed(1.3)+
+    scale_fill_gradientn(colors= gra)+
+    theme(legend.text=element_text(size=8),
+          plot.title=element_text(size=15),
+          panel.background=element_blank())
+ggplotly(ar)
+
+
+```
+
+Se observa que la tasación de California es superior al resto de los estados. Según este dato, se puede extraer que California, a parte de tener la valoración más alta, ha sido el estado que ha mantenido ese precio elevado de las viviendas durante el transurso de los años y no se ha visto tan perjudicado por la crísis inmobiliaria como el resto. 
+
+En cambio, si atendemos al precio de venta, se puede observar que estados como Nueva York, Virginia y Washington, al igual que ocurría con California, son los estados que cuentan con unos precios de venta de sus viviendas por encima del resto. Además, se podría profundizar que dichos estados son más rentables para vender viviendas con altos precios, es decir, las viviendas que se encuentran en el Top Tier del dataset de Zillow. 
+
+Por último, y en correlación con lo comentado anteriormente, se puede ver que los estados con un precio de alquiler por encima del resto son los mismos que tenían el precio de venta. Por ello, se puede concluir esta parte con la reflexión de que dichos estados son los que económicamente cuentan con el importe de sus inmuebles más elevados y, por lo tanto, los estados para usuarios de Zillow con un poder adquisito superior son California, Nueva York, Virginia y Washington.
+
+
+## ¿Comprar o alquilar?
+
+Tras analizar cada estado de Estados Unidos en su precio de venta y su precio de alquiler se quiere visualizar cuál es la operación que más se produce en cada uno de ellos.
+
+El siguiente paso va a ser realizar la mediana entre el precio de venta y el alquiler. El precio de venta es muy superior al del alquiler al visualizarlo en la gama de colores.
+
+```{r message=FALSE,warning=FALSE}
+state_map <- state_since2008 %>% dplyr::rename(name=RegionName) 
+
+state_grid_modified <- geofacet::us_state_grid1  %>%
+   mutate(name=gsub(" ",'',name)) %>%
+  inner_join(state_map,by='name')
+
+state_grid_modified <- state_grid_modified %>%
+  
+  mutate(name=ifelse(name=='WestVirginia',"West Virginia",name)) %>%
+  mutate(name=ifelse(name=='SouthDakota',"South Dakota",name)) %>%
+  mutate(name=ifelse(name=='RhodeIsland',"Rhode Island",name)) %>%
+  mutate(name=ifelse(name=='NorthDakota',"North Dakota",name)) %>%
+  mutate(name=ifelse(name=='NorthCarolina',"North Carolina",name)) %>%
+  mutate(name=ifelse(name=='NewMexico',"New Mexico",name)) %>%
+  mutate(name=ifelse(name=='NewJersey',"New Jersey",name)) %>%
+  mutate(name=ifelse(name=='NewHampshire',"New Hampshire",name)) %>%
+  mutate(name=ifelse(name=='SouthCarolina','South Carolina',name)) %>%
+  mutate(name=ifelse(name=='NewYork','New York',name)) %>%
+  mutate(name=ifelse(name=='DistrictofColumbia','District of Columbia',name))
+  
+  
+state_map <- state_grid_modified %>%
+  mutate(state_since2008=tolower(name)) %>%
+  group_by(state_since2008) %>%
+  summarise(median_ratio=median(PriceToRentRatio_AllHomes,na.rm=T))
+  
+
+p <- state_map %>%
+  dplyr::rename(`Median Ratio of Price to Rent`=median_ratio) %>%
+  ggplot(aes(map_id=state_since2008))+
+  geom_map(aes(fill=`Median Ratio of Price to Rent`),map = fifty_states)+
+expand_limits(x = fifty_states$long, y = fifty_states$lat) +
+  coord_map()+theme(legend.position = 'none',axis.ticks = element_blank(),panel.background = element_blank(),axis.text = element_blank(),axis.title = element_blank(),plot.title = element_text(hjust = 0.5),plot.caption = element_text(hjust=-0.05,face='italic'),plot.subtitle = element_text(face = 'italic',size='8'))+labs(fill='',title='Relación entre el precio de venta y el precio del alquiler',caption='Los estados en rojo muestran la preferencia de los residentes a alquilar por encima de comprar',subtitle='Se toma la mediana de la relación entre el precio de venta y el alquiler')+
+  scale_fill_continuous(low=gbp2,high=gbp1)
+
+#plotly::ggplotly(p)
+p
+```
+Los ciudadanos de la parte derecha de Estados Unidos son más propensos a alquilar que a comprar, al contrario de los residentes de la otra parte del mapa.
+
+
+
+```{r}
+print(state_map)
+```
+
+## Agrupación de las zonas de Estados Unidos
+
+### Distribución de las zonas de Estados Unidos
+
+```{r message=FALSE,warning=FALSE,fig.width=15}
+state <- read.csv("State_time_series.csv")
+state$us_region <- ''
+new_england <- c('Connecticut', 'Maine', 'Massachusetts', 'NewHampshire', 'RhodeIsland','Vermont')
+mid_atlantic <- c('NewJersey', 'NewYork', 'Pennsylvania')
+east_north_central <- c('Illinois', 'Indiana', 'Michigan', 'Ohio','Wisconsin')
+west_north_central <- c('Iowa', 'Kansas', 'Minnesota', 'Missouri', 'Nebraska', 'NorthDakota', 'SouthDakota')
+south_atlantic <- c('Delaware', 'Florida', 'Georgia', 'Maryland', 'NorthCarolina', 'SouthCarolina', 'Virginia', 'DistrictofColumbia','WestVirginia')
+east_south_central <- c('Alabama', 'Kentucky', 'Mississippi', 'Tennessee')
+west_south_central <- c('Arkansas', 'Louisiana', 'Oklahoma', 'Texas')
+mountain <- c('Arizona', 'Colorado', 'Idaho', 'Montana', 'Nevada', 'NewMexico', 'Utah', 'Wyoming')
+pacific <- c('Alaska', 'California', 'Hawaii', 'Oregon', 'Washington')
+
+state_with_region <- state %>%
+  mutate(us_region=ifelse(RegionName %in% new_england,"New England",us_region)) %>%
+  mutate(us_region=ifelse(RegionName %in% mid_atlantic,"Mid Altantic",us_region)) %>%
+  mutate(us_region=ifelse(RegionName %in% new_england,"New England",us_region)) %>%
+  mutate(us_region=ifelse(RegionName %in% east_north_central,"East North Central",us_region)) %>%
+  mutate(us_region=ifelse(RegionName %in% west_north_central,"West North Central",us_region)) %>%
+  mutate(us_region=ifelse(RegionName %in% south_atlantic,"South Atlantic",us_region)) %>%
+  mutate(us_region=ifelse(RegionName %in% east_south_central,"East South Central",us_region)) %>%
+  mutate(us_region=ifelse(RegionName %in% west_south_central,"West South Central",us_region)) %>%
+  mutate(us_region=ifelse(RegionName %in% mountain,"Mountain",us_region)) %>%
+  mutate(us_region=ifelse(RegionName %in% pacific,"Pacific",us_region))
+
+
+
+```
+
+
+```{r}
+plot_RegionName <- state_with_region %>%
+    ggplot(ggplot2::aes(y = log(ZHVI_AllHomes))) +
+    geom_boxplot(ggplot2::aes(x = "All"), notch = TRUE, fill = "grey") +
+    stat_summary(ggplot2::aes(x = "All"), fun.y = mean, geom = "point", shape = 8) +
+    geom_boxplot(ggplot2::aes(x = us_region, fill = us_region)) +
+    stat_summary(ggplot2::aes(x = us_region), fun.y = mean, geom = "point", shape = 8) +
+    xlab("Estado") +
+    ylab("Log del Precio de Venta") +
+    ggtitle("Distribución del Precio de Venta según la zona de Estados Unidos") +
+    theme(legend.position = "none") + 
+    theme(axis.text.x = element_text(angle = 50, hjust = 1))
+```
+
+```{r}
+plot_RegionName
+```
+
+Se puede apreciar cómo la mayoría de las zonas tienen una distribución parecida donde no tienen muchos outilers. 
+
+```{r}
+state_with_region$Date <- state_with_region$Date %>% as.Date
+state_with_region$Year <- lubridate::year(state_with_region$Date)
+```
+
+```{r}
+state_with_region$ZHVI <- ifelse(is.na(state_with_region$ZHVI_AllHomes),
+                                 median(state_with_region$ZHVI_AllHomes, na.rm = TRUE),
+                                 state_with_region$ZHVI_AllHomes)
+```
+
+
+```{r}
+state_with_region %>% 
+  filter(us_region != "") %>% # quité los datos donde la region estaba vacia
+  group_by(Year, us_region) %>%
+  summarise(Precio_Casas = mean(ZHVI)) %>%
+  ggplot(aes(x = Year,
+             y = Precio_Casas,
+             color = us_region)) +
+    geom_line(size = 1) + 
+    geom_point(size = 3) +
+    labs(title = 'Precio de las Casas agrupado por continentes en {round(frame_along, 0)}',
+         x = "Año",
+         y = "Precio de las Casas") +
+    theme_minimal() + 
+    transition_reveal(Year)
+```
+
+Se puede apreciar en el siguiente gráfico cómo cada zona de Estados Unidos realiza el mismo crecimiento y decrecimiento tratado. Además, se puede destacar que la zona que registra un mayor valor es la zona del Pacífico en comparación con la zona del este de Estados Unidos que presenta los valores más bajos. 
+
+### Días en Zillow VS Índice de valor de la vivienda
+
+Se observa el mismo crecimiento en el precio del alquiler que en el de venta, en el total de los estados y en el de Colorado.
+
+```{r}
+state_with_region %>% select(us_region,ZHVI,DaysOnZillow_AllHomes) %>%
+  filter(us_region!='') %>%
+  na.omit() %>% ggplot(aes(x=ZHVI,y=DaysOnZillow_AllHomes,color=us_region))+geom_jitter(alpha=0.05)+
+  geom_smooth()+
+  facet_wrap(~us_region,nrow=3)+theme(strip.background = element_blank(),legend.position = 'none',
+                                      panel.background = element_blank(),
+                                      axis.text.x = element_text(vjust=-1,angle=90),
+                                      plot.title = element_text(hjust=0.5,size=15),axis.title.x = element_text(size=10),axis.title.y = element_text(size=10),strip.text = element_text(size=15))+
+  labs(title='Días en Zillow VS Índice de valor de la vivienda de Zillow',x='ZHVI All Homes (USD)',y='Days on Zillow (All Homes)')
+```
+
+Vemos que se produce un decrecimiento del precio de Zillow a medida que está registrado. 
+
+## Teniendo en cuenta el precio de venta de la vivienda y el precio del alquiler, ¿siguén la misma fluctuación a lo largo de los años?
+
+Comparación del precio de venta con el precio del alquiler
+
+```{r}
+library(plyr)
+
+Year_SR = ddply(state_since2008, 'Year', summarise, 
+                   SalePrice=mean(Sale_Prices, na.rm=T),
+                   RentalPrice=mean(MedianRentalPrice_AllHomes, na.rm=T))
+Year_SR<-Year_SR[Year_SR$Year>=2008,]
+Year_SR[-1]<-scale(Year_SR[-1])
+
+```
+
+
+
+```{r}
+library(reshape)
+library(plotly)
+
+SR<-qplot(as.factor(Year), value, data = melt(Year_SR, id="Year"), geom = "line", group= variable, color = variable)+
+    labs(x="Año", y="Precio", color=NULL, title = "Rental & Sale prices by year")+
+    theme(plot.title=element_text(size=15))+ theme_minimal()+
+    scale_color_manual(values=c("#D8b70A", "#972039"))
+ggplotly(SR)
+
+```
+
+## CASO DEL ESTADO DE COLORADO
+
+Se seguirá con un estudio sobre el estado de Colorado por dicha noticia [página de datos](https://www.viveusa.mx/destinos/los-mejores-10-lugares-para-vivir-en-eu-en-2021). Se tratará la tasación de Colorado para ver su recorrido a lo largo del tiempo. El caso de estudio consiste en ver cuánto cambia el precio desde el año 2008, influido por la burbuja inmobiliaria, hasta los últimos años del dataset (2017).
+
+
+```{r}
+#COLORADO
+CL <- state_time %>% 
+  mutate(Date = format(Date, "%y-%m")) %>% 
+  filter(RegionName == "Colorado") %>% 
+  select(c("RegionName","MedianRentalPrice_AllHomes","Sale_Prices", "Date")) %>% 
+  drop_na()
+
+colnames(CL)[2:3]<-c("Rent","Sale")
+
+CL_centered <- data.frame(CL[,c(1,4)], Rent=scale(CL$Rent), Sale=scale(CL$Sale) )
+CL_centered <- melt(CL_centered, id=c("RegionName", "Date"))
+ggplot(CL_centered, aes(x=Date, y=value, group=variable))+
+  geom_line(aes(color=variable), size=1)+
+  labs(title = "Precio de alquiler y venta en Colorado")+
+  geom_vline(xintercept=seq(1,80,12), color="gray70", alpha=0.5)+
+  theme(axis.ticks.x=element_line(color=c(rep(c("black",rep("gray",11)),7))),
+        panel.grid.major.x=element_blank(), panel.grid.major.y=element_blank(),
+        panel.background=element_blank(),
+        plot.title=element_text(vjust=3, size=15),
+        axis.text.x=element_text(angle=90,hjust=-0.5,
+                                 color=c(rep(c("black",rep("white",11)),7))))+
+  scale_color_manual(values=c("#972039","#D8b70A"))
+
+#CALIFORNIA
+CAL <- state_time %>% 
+  mutate(Date = format(Date, "%y-%m")) %>% 
+  filter(RegionName == "California") %>% 
+  select(c("RegionName","MedianRentalPrice_AllHomes","Sale_Prices", "Date")) %>% 
+  drop_na()
+
+colnames(CAL)[2:3]<-c("Rent","Sale")
+
+CAL_centered <- data.frame(CAL[,c(1,4)], Rent=scale(CAL$Rent), Sale=scale(CAL$Sale) )
+CAL_centered <- melt(CAL_centered, id=c("RegionName", "Date"))
+ggplot(CAL_centered, aes(x=Date, y=value, group=variable))+
+  geom_line(aes(color=variable), size=1)+
+  labs(title = "Precio de alquiler y venta en California")+
+  geom_vline(xintercept=seq(1,80,12), color="gray70", alpha=0.5)+
+  theme(axis.ticks.x=element_line(color=c(rep(c("black",rep("gray",11)),7))),
+        panel.grid.major.x=element_blank(), panel.grid.major.y=element_blank(),
+        panel.background=element_blank(),
+        plot.title=element_text(vjust=3, size=15),
+        axis.text.x=element_text(angle=90,hjust=-0.5,
+                                 color=c(rep(c("black",rep("white",11)),7))))+
+  scale_color_manual(values=c("#972039","#D8b70A"))
+```
+
+### ¿Qué sucede con el valor de las casas desde 1996 hasta el 2017?
+
+```{r}
+stateTop <- state_time
+Top_list <-c("Hawaii","California","Florida","Colorado","Illinois","Mississippi")
+
+stateTop %>% 
+  filter(RegionName %in% Top_list) %>% # == no sirve para buscar en un listado
+  group_by(Year, RegionName) %>%
+  ggplot(aes(x = Date, # suaviza la curva
+             y = ZHVI_AllHomes,
+             color = RegionName)) +
+    geom_line(size = 1) + 
+    geom_point(size = 3) +
+    labs(title = 'Valor de mercado de los inmuebles según los estados en {round(lubridate::year(frame_along), 0)}', # Imprime solo el año
+         x = "Año",
+         y = "Valor medio de los inmuebles") +
+    theme_minimal() + 
+    transition_reveal(Date)
+
+```
+
+Como se puede ver, existe una tendencia alcista de cada uno de los valores económicos de las casas de Estados Unidos. Destada por encima de todos Hawaii, seguido de California y, por último, Missisippi, siendo el estado más barato para vivir en EE.UU.
+
+
+# Modelo - Predicción de los precios de la vivienda mediante H2O y automl
+
+Analizamos el estado de Colorado
+
+```{r}
+state_Colorado <- state_time %>% filter(RegionName=='Colorado')
+summary(state_Colorado$ZHVI_AllHomes)
+```
+Como vemos la diferencia del precio mínimo de Colorado hasta su precio máximo a lo largo del tiempo ha incrementado en un 268%, siempre por su puesto orientativo ya que tenemos que atender a los diferentes niveles con los que trabaja Zillow 
+
+```{r}
+# Dataset de Colorado
+state_Colorado <- state_time %>% filter(RegionName=='Colorado')
+state_Colorado_time_signature <- state_Colorado %>%
+  select(Date,ZHVI_AllHomes) %>%
+  mutate(Date=ymd(Date)) %>%
+  tk_augment_timeseries_signature()
+
+#Visualizaciones de training, test and validation sets
+state_Colorado_time_signature %>%
+  ggplot(aes(Date, ZHVI_AllHomes)) +
+  # Train
+  annotate("text", x = ymd("2000-04-30"), y = 8000,
+           color = palette_light()[[1]], label = "Train") +
+  # Validación
+  geom_rect(xmin = as.numeric(ymd("2016-01-01")), 
+            xmax = as.numeric(ymd("2016-12-31")),
+            ymin = 0, ymax = Inf, alpha = 0.02,
+            fill = palette_light()[[5]]) +
+  annotate("text", x = ymd("2015-02-01"), y = 40000,
+           color = palette_light()[[1]], label = "Validation") +
+  # Test 
+  geom_rect(xmin = as.numeric(ymd("2017-01-01")), 
+            xmax = as.numeric(ymd("2017-12-31")),
+            ymin = 0, ymax = Inf, alpha = 0.02,
+            fill = palette_light()[[6]]) +
+  annotate("text", x = ymd("2017-02-01"), y = 17000,
+           color = palette_light()[[1]], label = "Test") +
+  # Datos
+  geom_line(col = palette_light()[1]) +
+  geom_point(col = palette_light()[1]) +
+  geom_ma(ma_fun = SMA, n = 12, size = 1) +
+  # Tipografía
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  labs(title = "ZHVI_AllHomes de las viviendas a lo largo del tiempo en Colorado",
+       subtitle = "Vista del Train, Validación y Test")+
+  theme(axis.text.x = element_text(vjust=-1,angle=90),panel.background = element_blank())
+```
+
+Se puede apreciar que el set de train es todos los datos hasta 2016, el set de validación supondrá los datos del 2017 y por último la parte del test serán las observaciones de 2018.
+
+```{r}
+# Se crea el dataset de training, validación y testing
+state_Colorado_time_signature_without_date <-
+  state_Colorado_time_signature %>%
+  select(-Date) %>%
+  mutate_if(is.ordered, ~ as.character(.) %>% as.factor)
+
+train_tbl <- state_Colorado_time_signature_without_date %>%
+  filter(year<2016)
+
+valid_tbl <- state_Colorado_time_signature_without_date %>%
+  filter(year==2016)
+
+test_tbl <- state_Colorado_time_signature_without_date %>%
+  filter(year==2017)
+
+# Se inicia el cluster
+h2o.init()
+h2o.no_progress()
+#training
+train_h2o <- as.h2o(train_tbl)
+# validation
+valid_h2o <- as.h2o(valid_tbl)
+# testing
+test_h2o <- as.h2o(test_tbl)
+
+# Modelo de Automl
+y <- 'ZHVI_AllHomes'
+x <- setdiff(names(train_h2o),y)
+
+exc_algos=c(#"DeepLearning"
+            #,"GLM"
+            "XGBoost"
+            ,"GBM"
+            #,"StackedEnsemble"
+            ,"DRF"
+           )
+
+automl_models_h2o <- h2o.automl(
+    x = x, 
+    y = y, 
+    training_frame = train_h2o, 
+    validation_frame = valid_h2o, 
+    leaderboard_frame = test_h2o, 
+    nfolds = 3, 
+    max_runtime_secs = 60*7, # aumento de tiempo
+    stopping_metric = "deviance",
+    stopping_rounds = 5,
+    exclude_algos = exc_algos, 
+    seed = 123
+    )
+
+```
+
+Como el caso de uso es predecir ZHVI_AllHomes, la asignaremos como variable dependiente. La variable y contendrá la variable objetivo y x contendrá las variables predictoras.
+
+
+Se establece un mapa de calor para observar el mejor modelo
+
+```{r}
+automl_models_h2o@leaderboard %>%
+  kbl() %>% kable_styling(full_width = FALSE) %>% scroll_box(height = "400px")
+```
+
+```{r}
+h2o.varimp_heatmap(automl_models_h2o)
+```
+
+# Evaluar el rendimiento:
+
+```{r}
+# Se extrae el modelo lider
+
+automl_leader <- automl_models_h2o@leader
+h2o.performance(automl_leader,newdata = test_h2o)
+
+```
+
+
+```{r}
+pred_h2o <- h2o.predict(automl_leader, newdata = train_h2o)
+error_tbl <- state_Colorado_time_signature %>%
+  filter(year<2016)%>%
+  add_column(pred=pred_h2o %>% as.tibble() %>% pull(predict)) %>%
+  dplyr::rename(actual=ZHVI_AllHomes) %>%
+  mutate(error=actual-pred,
+         error_pct=error/actual)
+
+error_tbl %>%
+  summarise(
+    me=mean(error),
+    rmse=mean(error^2)^0.5,
+    mae=mean(abs(error)),
+    mape=mean(abs(error_pct)),
+    mpe=mean(error_pct)
+  ) %>%
+  glimpse()
+```
+
+
+## Visualizar el ajuste del training
+
+
+```{r}
+state_Colorado_time_signature %>%
+  ggplot(aes(x=Date,y=ZHVI_AllHomes)) +
+  geom_point(color = "steelblue4") +
+    geom_line(color = "#DBBD21") +
+    geom_line(aes(x=error_tbl$Date,y = error_tbl$pred), color = "red", size = 0.5, data = error_tbl) +
+    labs(
+        title = stringr::str_c("Predicción del precio de la vivienda ZHVI_AllHomes en los datos de entrenamiento")
+    )+
+theme_tq()
+```
+
+## Visualización de la parte de test
+
+
+```{r}
+pred_h2o <- h2o.predict(automl_leader, newdata = test_h2o)
+
+error_tbl <- state_Colorado_time_signature %>%
+  filter(year==2017)%>%
+  add_column(pred=pred_h2o %>% as.tibble() %>% pull(predict)) %>%
+  dplyr::rename(actual=ZHVI_AllHomes) %>%
+  mutate(error=actual-pred,
+         error_pct=error/actual)
+
+error_tbl %>%
+  summarise(
+    me=mean(error),
+    rmse=mean(error^2)^0.5,
+    mae=mean(abs(error)),
+    mape=mean(abs(error_pct)),
+    mpe=mean(error_pct)
+  ) %>%
+  glimpse()
+```
+
+
+```{r}
+error_tbl_modified <- error_tbl
+state_Colorado_time_signature %>%
+  ggplot(aes(x=Date,y=ZHVI_AllHomes)) +
+  geom_point(color = "steelblue4") +
+    geom_line(color = "#DBBD21") +
+    geom_line(aes(x=error_tbl_modified$Date,y = error_tbl_modified$pred), color = "red", size = 0.5, data = error_tbl_modified) +
+  geom_jitter(alpha=0.02)+
+    labs(
+        title = stringr::str_c("ZHVI_AllHomes Precios: predicción del conjunto de set")
+    )+
+  theme_tq()
+```
+
+
+Vemos que este modelo da un ajuste bastante bueno de los datos.
+
+## Predicción de los precios de la segunda mitad de 2017
+
+Podemos utilizar este modelo para predecir los precios de la segunda mitad de 2017
+
+
+```{r}
+dates_2017 <- c('2017-07-31','2017-08-31','2017-09-30','2017-10-31','2017-11-30','2017-12-31')
+prices_2017_latter <- data.frame(dates_2017)
+
+prices_2017_latter <- prices_2017_latter %>%
+  mutate(dates_2017=ymd(dates_2017)) %>%
+  timetk::tk_augment_timeseries_signature() %>%
+  na.omit() %>%
+  select(-dates_2017) %>%
+  select_if(~ !any(is.na(.))) %>%
+  mutate_if(is.ordered, ~ as.character(.) %>% as.factor)
+
+data_to_predict <- as.h2o(prices_2017_latter)
+pred_h2o <- h2o.predict(automl_leader,newdata = data_to_predict )
+pred_h2o
+```
+
+```{r}
+data_predicted <- data_frame(Date=c('2017-08-31','2017-09-30','2017-10-31','2017-11-30','2017-12-31'),predicted_values=as.numeric(as.tibble(pred_h2o)$predict))
+state_Colorado_time_signature %>%
+  ggplot(aes(x=Date,y=ZHVI_AllHomes)) +
+  geom_point(color = "steelblue4") +
+    geom_line(color = "#DBBD21") +
+    geom_line(aes(x=ymd(data_predicted$Date),y = data_predicted$predicted_values), color = "red", size = 0.5, data = data_predicted) +
+  geom_jitter(alpha=0.02)+
+    labs(
+        title = stringr::str_c("ZHVI_AllHomes Prices: prediciendo el futuro")
+    )+
+  theme_tq()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
